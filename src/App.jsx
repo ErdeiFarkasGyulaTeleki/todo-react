@@ -1,11 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { nanoid } from "nanoid";
+import axios from "axios";
 import Todo from "./components/Todo";
 import Form from "./components/Form";
 import FilterButton from "./components/FilterButton";
 
 function App(props) {
   const [tasks, setTasks] = useState(props.tasks);
+  const [online, setOnline] = useState(false);
+
+  useEffect(() => {
+    const checkOnlineStatus = async () => {
+      try {
+        await axios.get("/");
+        setOnline(true);
+      } catch (error) {
+        setOnline(false);
+      }
+    };
+
+    checkOnlineStatus();
+  }, []);
 
   function addTask(name) {
     const newTask = { id: `todo-${nanoid()}`, name, completed: false };
@@ -14,10 +29,7 @@ function App(props) {
 
   function toggleTaskCompleted(id) {
     const updatedTasks = tasks.map((task) => {
-      // if this task has the same ID as the edited task
       if (id === task.id) {
-        // use object spread to make a new object
-        // whose `completed` prop has been inverted
         return { ...task, completed: !task.completed };
       }
       return task;
@@ -46,6 +58,9 @@ function App(props) {
   return (
     <div className="todoapp stack-large">
       <h1>TodoMatic</h1>
+      <label style={{ backgroundColor: online ? "green" : "red", padding: "5px" }}>
+        {online ? "online" : "offline"}
+      </label>
       <Form addTask={addTask} />
       <div className="filters btn-group stack-exception">
         <FilterButton name="All" />
